@@ -10,7 +10,15 @@ var KINDS=[["birthday","Birthday"],["anniversary","Anniversary"],["memorial","Re
   ["passport","Passport"],["licence","Driver's licence"],["health","Health card"],["prcard","PR card or visa"],["insurance","Insurance renewal"],["plate","Licence plate sticker"],["membership","Membership"],["other-once","Other, once"]];
 var YEARLY={birthday:1,anniversary:1,memorial:1,"other-yearly":1};
 /* How early to be reminded, in days, by kind. Renewals take time (a passport can take weeks). */
-var LEAD={birthday:7,anniversary:7,memorial:1,"other-yearly":3,passport:120,licence:60,health:60,prcard:180,insurance:30,plate:30,membership:14,"other-once":14};
+var LEAD={birthday:7,anniversary:7,memorial:1,"other-yearly":3,passport:120,licence:60,health:60,prcard:180,insurance:30,plate:30,puc:7,membership:14,"other-once":14};
+KINDS.splice(KINDS.length-2,0,["puc","PUC certificate"]);
+/* Renewals differ by country: which ones show, and what they're called. */
+var BY={
+  CA:{hide:["puc"],names:{}},
+  US:{hide:["health","puc"],names:{licence:"Driver's license",prcard:"Green card or visa",plate:"Vehicle registration",insurance:"Insurance renewal"}},
+  IN:{hide:["health","plate"],names:{licence:"Driving licence",prcard:"Visa or OCI card",insurance:"Vehicle or health insurance"}}
+};
+function kindsFor(c){var b=BY[c]||BY.CA;return KINDS.filter(function(k){return b.hide.indexOf(k[0])<0;}).map(function(k){return [k[0],b.names[k[0]]||k[1]];});}
 /* Next date this falls on, from today. Feb 29 falls on Feb 28 in other years. */
 function next(item,today){
   if(!YEARLY[item.kind])return item.date;
@@ -31,8 +39,8 @@ function upcoming(state,today,within){
 function esc(t){return String(t).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");}
 function compact(s){return s.replace(/-/g,"");}
 function plus1(s){var d=parse(s);d.setDate(d.getDate()+1);return compact(iso(d));}
-function titleOf(i){var k=kindLabel(i.kind);return YEARLY[i.kind]?(i.kind==="birthday"?i.name+"'s birthday":i.kind==="anniversary"?i.name+" anniversary":i.name):(k+" renewal: "+i.name);}
-function kindLabel(k){var x=KINDS.filter(function(y){return y[0]===k;})[0];return x?x[1]:"";}
+function titleOf(i,c){var k=kindLabel(i.kind,c);return YEARLY[i.kind]?(i.kind==="birthday"?i.name+"'s birthday":i.kind==="anniversary"?i.name+" anniversary":i.name):(k+" renewal: "+i.name);}
+function kindLabel(k,c){var b=BY[c]||BY.CA;if(b.names[k])return b.names[k];var x=KINDS.filter(function(y){return y[0]===k;})[0];return x?x[1]:"";}
 function ics(state,today,stamp){
   var L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Pixora//Dates//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH"];
   state.items.forEach(function(i){
@@ -40,10 +48,10 @@ function ics(state,today,stamp){
     if(!yearly&&i.date<today)return;
     var lead=i.lead!=null?i.lead:LEAD[i.kind]||7;
     L.push("BEGIN:VEVENT","UID:pixora-dates-"+i.id+"@spoolsync.github.io","DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+compact(start),"DTEND;VALUE=DATE:"+plus1(start),
-      "SUMMARY:"+esc(titleOf(i)),"DESCRIPTION:"+esc([i.note,i.gifts&&i.gifts.length?"Gift ideas: "+i.gifts.map(function(g){return g.t;}).join(", "):""].filter(Boolean).join("\n")),"TRANSP:TRANSPARENT");
+      "SUMMARY:"+esc(titleOf(i,state.country)),"DESCRIPTION:"+esc([i.note,i.gifts&&i.gifts.length?"Gift ideas: "+i.gifts.map(function(g){return g.t;}).join(", "):""].filter(Boolean).join("\n")),"TRANSP:TRANSPARENT");
     if(yearly)L.push("RRULE:FREQ=YEARLY");
-    L.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+esc(titleOf(i)),"TRIGGER;RELATED=START:-P"+lead+"DT0H","END:VALARM");
-    if(lead>3)L.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+esc(titleOf(i)),"TRIGGER;RELATED=START:-PT15H","END:VALARM");
+    L.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+esc(titleOf(i,state.country)),"TRIGGER;RELATED=START:-P"+lead+"DT0H","END:VALARM");
+    if(lead>3)L.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+esc(titleOf(i,state.country)),"TRIGGER;RELATED=START:-PT15H","END:VALARM");
     L.push("END:VEVENT");
   });
   L.push("END:VCALENDAR");return L.join("\r\n")+"\r\n";
@@ -60,6 +68,6 @@ function clean(s){
   });
   return o;
 }
-var api={KINDS:KINDS,YEARLY:YEARLY,LEAD:LEAD,next:next,turns:turns,upcoming:upcoming,ics:ics,titleOf:titleOf,kindLabel:kindLabel,days:days,clean:clean};
+var api={kindsFor:kindsFor,KINDS:KINDS,YEARLY:YEARLY,LEAD:LEAD,next:next,turns:turns,upcoming:upcoming,ics:ics,titleOf:titleOf,kindLabel:kindLabel,days:days,clean:clean};
 if(typeof module!=="undefined"&&module.exports)module.exports=api;else root.DatesCore=api;
 })(typeof self!=="undefined"?self:this);
