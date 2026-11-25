@@ -29,7 +29,7 @@ function row(x){
 }
 function soonView(){
   var h=header("Dates","Coming up",'<button class="btn p s" data-act="new">Add</button>');
-  if(!S.items.length)return h+'<div class="empty"><p>Birthdays and anniversaries, plus renewals for your '+esc(C()==="US"?"passport, driver's license, green card, vehicle registration":C()==="IN"?"passport, driving licence, PUC, vehicle insurance":"passport, driver's licence, health card")+' and insurance. Then add them to your phone\'s calendar, with a reminder early enough to buy a gift or book a renewal.</p><div class="row"><button class="btn p" data-act="new">Add a date</button></div></div>';
+  if(!S.items.length)return h+'<div class="empty"><p>Birthdays and anniversaries, plus renewals for your '+esc(C()==="US"?"passport, driver's license, green card, vehicle registration":C()==="GB"?"passport, driving licence, MOT, vehicle tax, TV licence":C()==="IN"?"passport, driving licence, PUC, vehicle insurance":"passport, driver's licence, health card")+' and insurance. Then add them to your phone\'s calendar, with a reminder early enough to buy a gift or book a renewal.</p><div class="row"><button class="btn p" data-act="new">Add a date</button></div></div>';
   var u=D.upcoming(S,today(),60);
   if(!u.length)h+='<p class="note">Nothing in the next 60 days.</p>';
   u.forEach(function(x){h+=row(x);});
@@ -52,7 +52,7 @@ function allView(){
 }
 function settingsView(){
   var h='<button class="btn q s" data-act="tab" data-t="soon" style="align-self:flex-start">← Back</button><h1>Settings</h1>';
-  if(PC)h+=PC.picker("Sets which renewals show (health card, green card, PUC and so on), the tips, and money format.");
+  if(PC)h+=PC.picker("Sets which renewals show (health card, green card, MOT, PUC and so on), the tips, and money format.");
   h+='<section class="card"><h2>Account</h2>'+(K.local?'<p class="small">On this phone only.</p><div class="row"><button class="btn" data-act="join">Sign in or create a Pixora account</button></div>':'<p class="small">Signed in as '+esc(K.email||"")+'. Encrypted on this phone before it syncs; nobody else can read it, not even Pixora.</p><div class="row"><button class="btn q" data-act="signout">Sign out</button></div>')+'</section>';
   h+='<section class="card"><h2>Your copy</h2><p class="small muted">Download everything in Dates as a file, and bring it back here or on a new phone. It\'s a plain file, not encrypted.</p><div class="row"><button class="btn" data-act="export">Download a copy</button><label class="btn q" style="cursor:pointer">Restore from a copy<input type="file" id="restore" accept=".json,application/json" hidden></label></div></section>';
   h+='<section class="card"><h2>Ideas or problems?</h2><p class="small muted">Tell Sachin what would make Dates better or what went wrong. Nothing from your dates is sent.</p><div class="row"><button class="btn" data-act="feedback">Send feedback</button></div></section>';
@@ -99,6 +99,13 @@ var TIPS={
   US:{passport:"US passport renewals can take weeks; many adults can renew online or by mail. Some countries want 6 months left on it.",
     licence:"Most states let you renew online or by mail every other time; check your state's DMV. Domestic flights need a REAL ID or a passport.",
     prcard:"Green cards renew with Form I-90, about 6 months before they expire.",plate:"Renew the vehicle registration with your state's DMV, often online.",insurance:"A good moment to compare quotes before it auto-renews."},
+  GB:{passport:"UK passport renewals usually take a few weeks online; allow longer before summer. Some countries want 3 to 6 months left on it.",
+    licence:"The photocard needs renewing every 10 years (DVLA, online for £14). Driving with an expired photocard can be fined.",
+    mot:"Cars need an MOT every year once they're 3 years old (4 in Northern Ireland). You can get it up to a month early and keep the same renewal date.",
+    vtax:"Tax the vehicle on GOV.UK or the DVLA app; there are no paper discs, so it's easy to forget.",
+    tvlicence:"Needed to watch live TV or use BBC iPlayer. Renew online at tvlicensing.co.uk.",
+    ghic:"The free GHIC card covers state healthcare in the EU. Apply only on the NHS website; other sites charge.",
+    prcard:"Check your eVisa on GOV.UK and update your passport details before travel.",insurance:"Compare quotes about 3 weeks before renewal; prices are often lower then."},
   IN:{passport:"Book a Passport Seva appointment early; renewals can take weeks. Some countries want 6 months left on it.",
     licence:"Renew through Parivahan Sarathi online, then visit the RTO if needed. There's a short grace period after expiry.",
     puc:"Driving without a valid PUC certificate can be fined; any authorised petrol pump centre can renew it.",

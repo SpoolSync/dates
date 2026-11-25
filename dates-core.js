@@ -10,13 +10,15 @@ var KINDS=[["birthday","Birthday"],["anniversary","Anniversary"],["memorial","Re
   ["passport","Passport"],["licence","Driver's licence"],["health","Health card"],["prcard","PR card or visa"],["insurance","Insurance renewal"],["plate","Licence plate sticker"],["membership","Membership"],["other-once","Other, once"]];
 var YEARLY={birthday:1,anniversary:1,memorial:1,"other-yearly":1};
 /* How early to be reminded, in days, by kind. Renewals take time (a passport can take weeks). */
-var LEAD={birthday:7,anniversary:7,memorial:1,"other-yearly":3,passport:120,licence:60,health:60,prcard:180,insurance:30,plate:30,puc:7,membership:14,"other-once":14};
-KINDS.splice(KINDS.length-2,0,["puc","PUC certificate"]);
+var LEAD={birthday:7,anniversary:7,memorial:1,"other-yearly":3,passport:120,licence:60,health:60,prcard:180,insurance:30,plate:30,puc:7,membership:14,"other-once":14,mot:30,vtax:14,tvlicence:14,ghic:30};
+KINDS.splice(KINDS.length-2,0,["puc","PUC certificate"],["mot","MOT test"],["vtax","Vehicle tax"],["tvlicence","TV licence"],["ghic","GHIC card"]);
+var UKONLY=["mot","vtax","tvlicence","ghic"];
 /* Renewals differ by country: which ones show, and what they're called. */
 var BY={
-  CA:{hide:["puc"],names:{}},
-  US:{hide:["health","puc"],names:{licence:"Driver's license",prcard:"Green card or visa",plate:"Vehicle registration",insurance:"Insurance renewal"}},
-  IN:{hide:["health","plate"],names:{licence:"Driving licence",prcard:"Visa or OCI card",insurance:"Vehicle or health insurance"}}
+  CA:{hide:["puc"].concat(UKONLY),names:{}},
+  GB:{hide:["health","puc","plate"],names:{licence:"Driving licence photocard",prcard:"Visa or eVisa",insurance:"Car or home insurance"}},
+  US:{hide:["health","puc"].concat(UKONLY),names:{licence:"Driver's license",prcard:"Green card or visa",plate:"Vehicle registration",insurance:"Insurance renewal"}},
+  IN:{hide:["health","plate"].concat(UKONLY),names:{licence:"Driving licence",prcard:"Visa or OCI card",insurance:"Vehicle or health insurance"}}
 };
 function kindsFor(c){var b=BY[c]||BY.CA;return KINDS.filter(function(k){return b.hide.indexOf(k[0])<0;}).map(function(k){return [k[0],b.names[k[0]]||k[1]];});}
 /* Next date this falls on, from today. Feb 29 falls on Feb 28 in other years. */
